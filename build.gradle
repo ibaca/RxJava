@@ -30,3 +30,46 @@ if (project.hasProperty('release.useLastTag')) {
 test{
      maxHeapSize = "2g"
 }
+
+task gwtResources(type: Copy) {
+    from 'src/main/java';
+    into 'build/super'
+
+    include '**/*.java'
+    exclude '**/schedulers/**' // GWT has only one custom scheduler
+    exclude '**/RxThreadFactory.java' // uses Thread
+    exclude '**/OperatorObserveOn.java' // uses unsafe and references ImmediateScheduler and TrampolineScheduler
+    exclude '**/OnSubscribeCombineLatest.java' // uses BitSet
+    exclude '**/Blocking*.java' // GWT unsupported
+    exclude { details -> details.file.isFile() && !(
+                         details.file.text.contains('FieldUpdater.newUpdater') ||
+                         details.file.text.contains('Collections.synchronized') ||
+                         details.file.text.contains('ArrayDeque') ||
+                         details.file.text.contains('Thread.currentThread().interrupt') ||
+                         details.file.text.contains('Array.newInstance')) }
+
+    includeEmptyDirs = false
+
+    filter { line -> line
+            .replaceAll('AtomicIntegerFieldUpdater.newUpdater\\((.*?).class, \"(.*?)\"\\);',
+                'new rx.internal.util.GwtIntegerFieldUpdater<\$1>() {' +
+                ' @Override protected int getter(\$1 obj) { return obj.\$2; }' +
+                ' @Override protected void setter(\$1 obj, int update) { obj.\$2 = update; } };')
+
+            .replaceAll('AtomicLongFieldUpdater.newUpdater\\((.*?).class, \"(.*?)\"\\);',
+                'new rx.internal.util.GwtLongFieldUpdater<\$1>() {' +
+                ' @Override protected long getter(\$1 obj) { return obj.\$2; }' +
+                ' @Override protected void setter(\$1 obj, long update) { obj.\$2 = update; } };')
+
+            .replaceAll('AtomicReferenceFieldUpdater.newUpdater\\((.*?).class, (.*?).class, \"(.*?)\"\\);',
+                'new rx.internal.util.GwtReferenceFieldUpdater<\$1,\$2>() {' +
+                ' @Override protected \$2 getter(\$1 obj) { return obj.\$3; }' +
+                ' @Override protected void setter(\$1 obj, \$2 update) { obj.\$3 = update; } };')
+
+            .replaceAll('Collections.synchronized(.*?)\\((.*?)\\);', '\$2;')
+            .replaceAll('ArrayDeque(.*?)\\((.*?)\\)', 'LinkedList\$1()')
+            .replaceAll('ArrayDeque', 'LinkedList')
+            .replaceAll('Thread.currentThread\\(\\)\\.interrupt\\(\\);', '')
+            .replaceAll('Array.newInstance\\([^,]*, (.*?)\\)', 'new Object[\$1]')
+    }
+}
