@@ -21,6 +21,20 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    gwt {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+        }
+    }
+}
+
+configurations {
+    gwtCompile.extendsFrom compile
+    gwtRuntime.extendsFrom runtime
+}
+
 dependencies {
     signature 'org.codehaus.mojo.signature:java16:1.1@signature'
 
@@ -31,6 +45,9 @@ dependencies {
 
     perfCompile 'org.openjdk.jmh:jmh-core:1.11.3'
     perfCompile 'org.openjdk.jmh:jmh-generator-annprocess:1.11.3'
+
+    gwtCompile 'com.google.gwt:gwt-dev:2.8.1'
+    gwtCompile 'com.google.gwt:gwt-user:2.8.1'
 }
 
 javadoc {
@@ -134,3 +151,59 @@ findbugsMain {
         xml.enabled = true
     }
 }
+
+// rm -rf ../rxjava-gwt/src/main/replaced && ./gradlew clean gwtResources && mv build/replaced ../rxjava-gwt/src/main
+task gwtResources(type: Copy) {
+    from 'src/main/java';
+    into 'build/replaced/rx/super'
+
+    include '**/*.java'
+    exclude '**/schedulers/**' // GWT has only one custom scheduler
+    exclude '**/RxThreadFactory.java' // uses Thread
+    exclude '**/OperatorObserveOn.java' // uses unsafe and references ImmediateScheduler and TrampolineScheduler
+    exclude '**/OnSubscribeCombineLatest.java' // uses BitSet
+    exclude '**/Blocking*.java' // GWT unsupported
+    exclude { details -> details.file.isFile() && !(
+                         details.file.text.contains('FieldUpdater.newUpdater') ||
+                         details.file.text.contains('Collections.synchronized') ||
+                         details.file.text.contains('ArrayDeque') ||
+                         details.file.text.contains('Thread.currentThread().interrupt') ||
+                         details.file.text.contains('Array.newInstance')) }
+
+    includeEmptyDirs = false
+
+    filter { line -> line
+            .replaceAll('Thread.currentThread\\(\\)\\.interrupt\\(\\);', '')
+            .replaceAll('Array.newInstance\\([^,]*, (.*?)\\)', 'new Object[\$1]')
+    }
+}
+
+task gwtCompile(type: JavaExec) {
+    dependsOn classes
+    description = 'GWT verify'
+    main = 'com.google.gwt.dev.Compiler'
+    def cp = files(
+            sourceSets.main.java.srcDirs, sourceSets.main.resources.srcDirs,
+            sourceSets.gwt.java.srcDirs, sourceSets.gwt.resources.srcDirs,
+            sourceSets.gwt.compileClasspath)
+//    println("classpath (${cp.size()})\n${cp.join('\n')}")
+    classpath cp
+    args = ['-failOnError', '-validateOnly', 'rx.Rx']
+}
+
+task gwtCopy(type: Copy) {
+    description = 'GWT Copy HEAD modified files to RxJava GWT'
+    def out = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'r1.3.0', 'HEAD'
+        standardOutput = out
+    }
+    def modified = out.toString().split('\n').toList()
+            .findAll({file -> file.startsWith('src/main/java')})
+            .collect({file -> file.replace('src/main/java/','')})
+    from('src/main/java') {
+        include modified
+    }
+    into '../rxjava-gwt/src/main/modified/rx/super'
+}
+
