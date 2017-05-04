@@ -21,6 +21,20 @@ apply plugin: 'nebula.rxjava-project'
 sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
 
+sourceSets {
+    gwt {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+        }
+    }
+}
+
+configurations {
+    gwtCompile.extendsFrom compile
+    gwtRuntime.extendsFrom runtime
+}
+
 dependencies {
     signature 'org.codehaus.mojo.signature:java16:1.1@signature'
 
@@ -34,6 +48,10 @@ dependencies {
 
     testCompile 'org.reactivestreams:reactive-streams-tck:1.0.0'
     testCompile group: 'org.testng', name: 'testng', version: '6.9.10'
+
+    gwtCompile 'org.reactivestreams:reactive-streams:1.0.0:sources'
+    gwtCompile 'com.google.gwt:gwt-dev:2.8.1'
+    gwtCompile 'com.google.gwt:gwt-user:2.8.1'
 }
 
 javadoc {
@@ -69,7 +87,7 @@ if (project.hasProperty('release.useLastTag')) {
 }
 
 test {
-    
+
     testLogging  {
         // showing skipped occasionally should prevent CI timeout due to lack of standard output
         events=['skipped', 'failed'] // "started", "passed"
@@ -81,7 +99,7 @@ test {
 
         info.events = ["failed", "skipped"]
         info.exceptionFormat="full"
-        
+
         warn.events = ["failed", "skipped"]
         warn.exceptionFormat="full"
     }
@@ -93,7 +111,7 @@ test {
     }
 }
 
-task testng(type: Test) { 
+task testng(type: Test) {
      useTestNG()
      testLogging  {
         events=['skipped', 'failed']
@@ -104,13 +122,13 @@ task testng(type: Test) {
 
         info.events = ["failed", "skipped"]
         info.exceptionFormat="full"
-        
+
         warn.events = ["failed", "skipped"]
         warn.exceptionFormat="full"
      }
-} 
+}
 
-check.dependsOn testng 
+check.dependsOn testng
 
 jacoco {
     toolVersion = '0.7.7.201606060606' // See http://www.eclemma.org/jacoco/.
@@ -141,7 +159,7 @@ jacocoTestReport {
         xml.enabled = true
         html.enabled = true
     }
-    
+
     afterEvaluate {
         classDirectories = files(classDirectories.files.collect {
             fileTree(dir: it,
@@ -193,7 +211,7 @@ build.dependsOn jacocoTestReport
 checkstyle {
     configFile file('checkstyle.xml')
     ignoreFailures = true
-    toolVersion ="6.19" 
+    toolVersion ="6.19"
 }
 
 /*
@@ -230,8 +248,64 @@ publishing.publications.all {
        it.name*.value = 'David Karnok'
        it.email*.value = 'akarnokd@gmail.com'
     }
-    
+
     asNode().properties.nebula_Module_Owner*.value = 'akarnokd@gmail.com'
     asNode().properties.nebula_Module_Email*.value = 'akarnokd@gmail.com'
   }
 }
+
+// rm -rf ../rxjava-gwt/src/main/replaced && ./gradlew clean gwtResources && mv build/replaced ../rxjava-gwt/src/main
+task gwtResources(type: Copy) {
+    from 'src/main/java';
+    into 'build/replaced/rx/super'
+
+    include '**/*.java'
+    exclude '**/schedulers/**' // GWT has only one custom scheduler
+    exclude '**/RxThreadFactory.java' // uses Thread
+    exclude '**/OperatorObserveOn.java' // uses unsafe and references ImmediateScheduler and TrampolineScheduler
+    exclude '**/OnSubscribeCombineLatest.java' // uses BitSet
+    exclude '**/Blocking*.java' // GWT unsupported
+    exclude { details -> details.file.isFile() && !(
+                         details.file.text.contains('FieldUpdater.newUpdater') ||
+                         details.file.text.contains('Collections.synchronized') ||
+                         details.file.text.contains('ArrayDeque') ||
+                         details.file.text.contains('Thread.currentThread().interrupt') ||
+                         details.file.text.contains('Array.newInstance')) }
+
+    includeEmptyDirs = false
+
+    filter { line -> line
+            .replaceAll('Thread.currentThread\\(\\)\\.interrupt\\(\\);', '')
+            .replaceAll('Array.newInstance\\([^,]*, (.*?)\\)', 'new Object[\$1]')
+    }
+}
+
+task gwtCompile(type: JavaExec) {
+    dependsOn classes
+    description = 'GWT verify'
+    main = 'com.google.gwt.dev.Compiler'
+    def cp = files(
+            sourceSets.main.java.srcDirs, sourceSets.main.resources.srcDirs,
+            sourceSets.gwt.java.srcDirs, sourceSets.gwt.resources.srcDirs,
+            sourceSets.gwt.compileClasspath)
+    println("classpath (${cp.size()})\n${cp.join('\n')}")
+    classpath cp
+    args = ['-draftCompile', '-failOnError', '-validateOnly', 'io.reactivex.RxJava']
+}
+
+task gwtCopy(type: Copy) {
+    description = 'GWT Copy HEAD modified files to RxJava GWT'
+    def out = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'v2.1.2', 'HEAD'
+        standardOutput = out
+    }
+    def modified = out.toString().split('\n').toList()
+            .findAll({file -> file.startsWith('src/main/java')})
+            .collect({file -> file.replace('src/main/java/','')})
+    from('src/main/java') {
+        include modified
+    }
+    into '../rxjava-gwt/src/main/modified/rx/super'
+}
+
