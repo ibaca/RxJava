@@ -1,5 +1,5 @@
 buildscript {
-  repositories { 
+  repositories {
     jcenter()
     mavenCentral()
     maven {
@@ -48,6 +48,20 @@ apply plugin: "eclipse"
 sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
 
+sourceSets {
+    gwt {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+        }
+    }
+}
+
+configurations {
+    gwtCompile.extendsFrom compile
+    gwtRuntime.extendsFrom runtime
+}
+
 // Dependency versions
 // ---------------------------------------
 
@@ -62,6 +76,7 @@ def jacocoVersion = "0.8.0"
 
 repositories {
   mavenCentral()
+  mavenLocal()
 }
 
 dependencies {
@@ -76,6 +91,10 @@ dependencies {
     testImplementation "org.reactivestreams:reactive-streams-tck:$reactiveStreamsVersion"
     testImplementation "org.testng:testng:$testNgVersion"
     testImplementation "com.google.guava:guava:$guavaVersion"
+
+    gwtCompile "org.reactivestreams:reactive-streams:1.0.0:sources"
+    gwtCompile "com.google.gwt:gwt-dev:2.8.2-rx1"
+    gwtCompile "com.google.gwt:gwt-user:2.8.2-rx1"
 }
 
 javadoc {
@@ -180,7 +199,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            artifact (sourcesJar) { 
+            artifact (sourcesJar) {
                 classifier = "sources"
             }
         }
@@ -312,25 +331,25 @@ if (rootProject.hasProperty("releaseMode")) {
 
   if ("branch".equals(rootProject.releaseMode)) {
     // From https://github.com/ReactiveX/RxAndroid/blob/2.x/rxandroid/build.gradle#L94
-  
+
     println("ReleaseMode: " + rootProject.releaseMode);
     artifactory {
         contextUrl = "https://oss.jfrog.org"
-    
+
         publish {
             repository {
                 repoKey = "oss-snapshot-local"
-    
+
                 username = rootProject.bintrayUser
                 password = rootProject.bintrayKey
             }
-    
+
             defaults {
                 publishConfigs("archives")
             }
         }
     }
-    
+
     build.finalizedBy(artifactoryPublish)
   }
 
@@ -358,7 +377,7 @@ if (rootProject.hasProperty("releaseMode")) {
                 sign = true
              }
              mavenCentralSync {
-               sync = true 
+               sync = true
                user = rootProject.sonatypeUsername
                password = rootProject.sonatypePassword
                close = "1"
@@ -366,9 +385,65 @@ if (rootProject.hasProperty("releaseMode")) {
            }
          }
       }
-      
+
       build.finalizedBy(bintrayUpload)
    }
 }
 
 apply from: file("gradle/javadoc_cleanup.gradle")
+
+// rm -rf ../rxjava-gwt/src/main/replaced && ./gradlew clean gwtResources && mv build/replaced ../rxjava-gwt/src/main
+task gwtResources(type: Copy) {
+    from 'src/main/java';
+    into 'build/replaced/rx/super'
+
+    include '**/*.java'
+    exclude '**/schedulers/**' // GWT has only one custom scheduler
+    exclude '**/RxThreadFactory.java' // uses Thread
+    exclude '**/OperatorObserveOn.java' // uses unsafe and references ImmediateScheduler and TrampolineScheduler
+    exclude '**/OnSubscribeCombineLatest.java' // uses BitSet
+    exclude '**/Blocking*.java' // GWT unsupported
+    exclude { details -> details.file.isFile() && !(
+                         details.file.text.contains('FieldUpdater.newUpdater') ||
+                         details.file.text.contains('Collections.synchronized') ||
+                         details.file.text.contains('ArrayDeque') ||
+                         details.file.text.contains('Thread.currentThread().interrupt') ||
+                         details.file.text.contains('Array.newInstance')) }
+
+    includeEmptyDirs = false
+
+    filter { line -> line
+            .replaceAll('Thread.currentThread\\(\\)\\.interrupt\\(\\);', '')
+            .replaceAll('Array.newInstance\\([^,]*, (.*?)\\)', 'new Object[\$1]')
+    }
+}
+
+task gwtCompile(type: JavaExec) {
+    dependsOn classes
+    description = 'GWT verify'
+    main = 'com.google.gwt.dev.Compiler'
+    def cp = files(
+            sourceSets.main.java.srcDirs, sourceSets.main.resources.srcDirs,
+            sourceSets.gwt.java.srcDirs, sourceSets.gwt.resources.srcDirs,
+            sourceSets.gwt.compileClasspath)
+    println("classpath (${cp.size()})\n${cp.join('\n')}")
+    classpath cp
+    args = ['-draftCompile', '-failOnError', '-validateOnly', 'io.reactivex.RxJava']
+}
+
+task gwtCopy(type: Copy) {
+    description = 'GWT Copy HEAD modified files to RxJava GWT'
+    def out = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'v2.2.0', 'HEAD'
+        standardOutput = out
+    }
+    def modified = out.toString().split('\n').toList()
+            .findAll({file -> file.startsWith('src/main/java')})
+            .collect({file -> file.replace('src/main/java/','')})
+    from('src/main/java') {
+        include modified
+    }
+    into '../rxjava-gwt/src/main/modified/io/reactivex/super'
+}
+
