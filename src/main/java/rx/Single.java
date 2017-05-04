@@ -549,7 +549,7 @@ public class Single<T> {
      * @see <a href="http://reactivex.io/documentation/operators/from.html">ReactiveX operators documentation: From</a>
      */
     public static <T> Single<T> from(Future<? extends T> future, Scheduler scheduler) {
-        return from(future).subscribeOn(scheduler);
+        return Single.<T>from(future).subscribeOn(scheduler);
     }
 
     /**
@@ -2878,6 +2878,7 @@ public class Single<T> {
      * @since 1.2.3
      */
     @Experimental
+    @GwtIncompatible
     public final AssertableSubscriber<T> test() {
         AssertableSubscriberObservable<T> ts = AssertableSubscriberObservable.create(Long.MAX_VALUE);
         subscribe(ts);

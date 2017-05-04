@@ -19,6 +19,7 @@ import java.io.*;
 import java.util.*;
 
 import rx.annotations.Beta;
+import rx.internal.util.GwtIncompatible;
 
 /**
  * Represents an exception that is a composite of one or more other exceptions. A {@code CompositeException}
@@ -185,7 +186,7 @@ public final class CompositeException extends RuntimeException {
         printStackTrace(new WrappedPrintStream(s));
     }
 
-    @Override
+    @Override @GwtIncompatible("java.io.PrintWriter")
     public void printStackTrace(PrintWriter s) {
         printStackTrace(new WrappedPrintWriter(s));
     }
@@ -254,6 +255,7 @@ public final class CompositeException extends RuntimeException {
         }
     }
 
+    @GwtIncompatible("java.io.PrintWriter")
     static final class WrappedPrintWriter extends PrintStreamOrWriter {
         private final PrintWriter printWriter;
 

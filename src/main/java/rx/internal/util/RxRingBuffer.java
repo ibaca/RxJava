@@ -248,7 +248,7 @@ public class RxRingBuffer implements Subscription {
         }
 
         // possible system property for overriding
-        String sizeFromProperty = System.getProperty("rx.ring-buffer.size"); // also see IndexedRingBuffer
+        String sizeFromProperty = null; // also see IndexedRingBuffer
         if (sizeFromProperty != null) {
             try {
                 defaultSize = Integer.parseInt(sizeFromProperty);

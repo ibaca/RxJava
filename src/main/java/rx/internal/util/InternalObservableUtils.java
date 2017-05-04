@@ -119,10 +119,12 @@ public enum InternalObservableUtils {
      * @param clazz the class to check against
      * @return the comparison function
      */
+    @GwtIncompatible("Class.isInstance")
     public static Func1<Object, Boolean> isInstanceOf(Class<?> clazz) {
         return new IsInstanceOfFunc1(clazz);
     }
 
+    @GwtIncompatible("Class.isInstance")
     static final class IsInstanceOfFunc1 implements Func1<Object, Boolean> {
         final Class<?> clazz;
 

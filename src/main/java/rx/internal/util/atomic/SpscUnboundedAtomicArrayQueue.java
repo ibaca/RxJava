@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.atomic.*;
 
 import rx.internal.util.unsafe.Pow2;
+import rx.plugins.RxJavaPlugins;
 
 /**
  * A single-producer single-consumer queue with unbounded capacity.
@@ -31,7 +32,7 @@ import rx.internal.util.unsafe.Pow2;
  * @param <T> the value type held by this queue
  */
 public final class SpscUnboundedAtomicArrayQueue<T> implements Queue<T> {
-    static final int MAX_LOOK_AHEAD_STEP = Integer.getInteger("jctools.spsc.max.lookahead.step", 4096);
+    static final int MAX_LOOK_AHEAD_STEP = RxJavaPlugins.intConfiguration("jctools.spsc.max.lookahead.step", 4096);
     final AtomicLong producerIndex;
     int producerLookAheadStep;
     long producerLookAhead;
