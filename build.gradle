@@ -1,5 +1,5 @@
 buildscript {
-  repositories { 
+  repositories {
     jcenter()
     mavenCentral()
     maven {
@@ -48,6 +48,25 @@ apply plugin: "eclipse"
 sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
 
+sourceSets {
+    main {
+        java {
+            srcDir 'src/gwt/java'
+        }
+    }
+    gwt {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+        }
+    }
+}
+
+configurations {
+    gwtCompile.extendsFrom compile
+    gwtRuntime.extendsFrom runtime
+}
+
 // Dependency versions
 // ---------------------------------------
 
@@ -62,6 +81,7 @@ def jacocoVersion = "0.8.0"
 
 repositories {
   mavenCentral()
+  mavenLocal()
 }
 
 dependencies {
@@ -76,6 +96,12 @@ dependencies {
     testImplementation "org.reactivestreams:reactive-streams-tck:$reactiveStreamsVersion"
     testImplementation "org.testng:testng:$testNgVersion"
     testImplementation "com.google.guava:guava:$guavaVersion"
+
+    gwtCompile configurations.implementation
+    gwtCompile "org.reactivestreams:reactive-streams:$reactiveStreamsVersion:sources"
+    gwtCompile "com.google.gwt:gwt-dev:2.8.2-rx1"
+    gwtCompile "com.google.gwt:gwt-user:2.8.2-rx1"
+    implementation "com.google.elemental2:elemental2-dom:1.0.0-RC1"
 }
 
 javadoc {
@@ -180,7 +206,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            artifact (sourcesJar) { 
+            artifact (sourcesJar) {
                 classifier = "sources"
             }
         }
@@ -312,25 +338,25 @@ if (rootProject.hasProperty("releaseMode")) {
 
   if ("branch".equals(rootProject.releaseMode)) {
     // From https://github.com/ReactiveX/RxAndroid/blob/2.x/rxandroid/build.gradle#L94
-  
+
     println("ReleaseMode: " + rootProject.releaseMode);
     artifactory {
         contextUrl = "https://oss.jfrog.org"
-    
+
         publish {
             repository {
                 repoKey = "oss-snapshot-local"
-    
+
                 username = rootProject.bintrayUser
                 password = rootProject.bintrayKey
             }
-    
+
             defaults {
                 publishConfigs("archives")
             }
         }
     }
-    
+
     build.finalizedBy(artifactoryPublish)
   }
 
@@ -358,7 +384,7 @@ if (rootProject.hasProperty("releaseMode")) {
                 sign = true
              }
              mavenCentralSync {
-               sync = true 
+               sync = true
                user = rootProject.sonatypeUsername
                password = rootProject.sonatypePassword
                close = "1"
@@ -366,9 +392,80 @@ if (rootProject.hasProperty("releaseMode")) {
            }
          }
       }
-      
+
       build.finalizedBy(bintrayUpload)
    }
 }
 
 apply from: file("gradle/javadoc_cleanup.gradle")
+
+// GWT Adaptation process:
+// - create a new branch for each rxjava version (ex. create branch 2.1.0-gwt at previous branch 2.0.0-gwt)
+// - rebase the new branch to onto the rxjava version (ex. rebase branch 2.1.0-gwt onto tag v2.1.0)
+// - update build.gradle gwtCopy git commandLine to reference the correct version (ex. change it to …'-r', 'v2.1.0'…)
+// - create a commit starting with "script", we use this prefix to squash it into the "GWT build script commit"
+// - then iterate with this sub-steps until gwtCompile succeed (execute it now, if it success you are done)
+//   *  if a new emulation is required, add it to src/gwt/resources/io/reactivex/super and commit it with "emul" prefix
+//   *  if there is non compatible classes that can be ignored add the @GwtIncompatible flag and commit it with "adapt"
+//   *  sometimes you need to make minor changes to make it gwt friendly, like removing a system property access, use
+//      a different implementation, removing uses of String.format, etc. modify and commit it with "adapt" prefix too
+// - interactive rebase since "GWT build script" squashing "script" to "GWT build script", "emul" to "GWT jdk emulation"
+//   and "adapt" to "GWT friendly changes", last commit must be "GWT specific code"
+// - execute gwtPush to push changes to rxjava-gwt project
+task gwtCompile(type: JavaExec) {
+    dependsOn classes
+    description = 'GWT verify'
+    main = 'com.google.gwt.dev.Compiler'
+    def cp = files(
+            sourceSets.main.java.srcDirs, sourceSets.main.resources.srcDirs,
+            sourceSets.gwt.java.srcDirs, sourceSets.gwt.resources.srcDirs,
+            sourceSets.gwt.compileClasspath)
+    println("classpath (${cp.size()})\n${cp.join('\n')}")
+    classpath cp
+    args = ['-draftCompile', '-failOnError', '-validateOnly', 'io.reactivex.RxJava']
+}
+
+task gwtDeleteJava(type: Delete) {
+    delete '../rxjava-gwt/src/main/java'
+}
+task gwtCopyJava(type: Copy) {
+    description = 'GWT Specific Implementations to RxJava GWT'
+    dependsOn gwtDeleteJava
+    from 'src/gwt/java'
+    into '../rxjava-gwt/src/main/java'
+}
+
+task gwtDeleteResources(type: Delete) {
+    delete '../rxjava-gwt/src/main/resources' 
+}
+task gwtCopyResources(type: Copy) {
+    description = 'GWT Resources & Emulation to RxJava GWT'
+    dependsOn gwtDeleteResources
+    from 'src/gwt/resources'
+    into '../rxjava-gwt/src/main/resources'
+}
+
+task gwtDeleteModified(type: Delete) {
+    delete '../rxjava-gwt/src/main/modified'
+}
+task gwtCopyModified(type: Copy) {
+    description = 'GWT Copy HEAD modified files to RxJava GWT'
+    dependsOn gwtDeleteModified
+    def out = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'v2.2.10', 'HEAD'
+        standardOutput = out
+    }
+    def modified = out.toString().split('\n').toList()
+            .findAll({file -> file.startsWith('src/main/java') && !file.contains('GwtIncompatible')})
+            .collect({file -> file.replace('src/main/java/','')})
+    from('src/main/java') {
+        include modified
+    }
+    into '../rxjava-gwt/src/main/modified/io/reactivex/super'
+}
+
+task gwtPush(type: Task) {
+    dependsOn gwtCompile, gwtCopyJava, gwtCopyResources, gwtCopyModified
+}
+
