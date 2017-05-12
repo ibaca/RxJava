@@ -210,7 +210,7 @@ public final class OnSubscribeCombineLatest<T, R> implements OnSubscribe<R> {
                         || (value == null && o == MISSING); // or this source completed without any value
                 if (!empty) {
                     if (value != null && allSourcesFinished) {
-                        queue.offer(combinerSubscriber, latest.clone());
+                        queue.offer(combinerSubscriber, Arrays.copyOf(latest, latest.length));
                     } else
                     if (value == null && error.get() != null && (o == MISSING || !delayError)) {
                         done = true; // if this source completed without a value

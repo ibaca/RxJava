@@ -17,6 +17,7 @@
 package rx.internal.util.atomic;
 
 import java.util.concurrent.atomic.*;
+import rx.plugins.RxJavaPlugins;
 
 /**
  * A Single-Producer-Single-Consumer queue backed by a pre-allocated buffer.
@@ -33,7 +34,7 @@ import java.util.concurrent.atomic.*;
  * @param <E>
  */
 public final class SpscAtomicArrayQueue<E> extends AtomicReferenceArrayQueue<E> {
-    private static final Integer MAX_LOOK_AHEAD_STEP = Integer.getInteger("jctools.spsc.max.lookahead.step", 4096);
+    private static final Integer MAX_LOOK_AHEAD_STEP = RxJavaPlugins.intConfiguration("jctools.spsc.max.lookahead.step", 4096);
     final AtomicLong producerIndex;
     long producerLookAhead;
     final AtomicLong consumerIndex;

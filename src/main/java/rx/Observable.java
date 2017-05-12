@@ -7859,6 +7859,7 @@ public class Observable<T> {
      * @return an Observable that emits items from the source Observable of type {@code klass}
      * @see <a href="http://reactivex.io/documentation/operators/filter.html">ReactiveX operators documentation: Filter</a>
      */
+    @GwtIncompatible("Class.isInstance")
     public final <R> Observable<R> ofType(final Class<R> klass) {
         return filter(InternalObservableUtils.isInstanceOf(klass)).cast(klass);
     }
@@ -12796,6 +12797,7 @@ public class Observable<T> {
      * @return the new AssertableSubscriber instance
      * @since 1.3
      */
+    @GwtIncompatible
     public final AssertableSubscriber<T> test() {
         AssertableSubscriber<T> ts = AssertableSubscriberObservable.create(Long.MAX_VALUE);
         subscribe(ts);
@@ -12816,6 +12818,7 @@ public class Observable<T> {
      * @param initialRequestAmount the amount to request from upstream upfront, non-negative (not verified)
      * @since 1.3
      */
+    @GwtIncompatible
     public final AssertableSubscriber<T> test(long initialRequestAmount) {
         AssertableSubscriber<T> ts = AssertableSubscriberObservable.create(initialRequestAmount);
         subscribe(ts);

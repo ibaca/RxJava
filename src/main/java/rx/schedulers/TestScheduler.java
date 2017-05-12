@@ -55,7 +55,7 @@ public class TestScheduler extends Scheduler {
 
         @Override
         public String toString() {
-            return String.format("TimedAction(time = %d, action = %s)", time, action.toString());
+            return "TimedAction(time = " + time + ", action = " + action + ")";
         }
     }
 
