@@ -58,7 +58,7 @@ public class OperatorCast<T, R> implements Operator<R, T> {
             R result;
 
             try {
-                result = castClass.cast(t);
+                result = (R) t;
             } catch (Throwable ex) {
                 Exceptions.throwIfFatal(ex);
                 unsubscribe();

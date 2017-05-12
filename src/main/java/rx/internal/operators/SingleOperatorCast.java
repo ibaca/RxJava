@@ -32,6 +32,6 @@ public class SingleOperatorCast<T, R> implements Func1<T, R> {
 
     @Override
     public R call(T t) {
-        return castClass.cast(t);
+        return (R) t;
     }
 }
