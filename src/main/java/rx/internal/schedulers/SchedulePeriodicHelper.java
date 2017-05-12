@@ -40,8 +40,7 @@ public final class SchedulePeriodicHelper {
      */
     public static final long CLOCK_DRIFT_TOLERANCE_NANOS;
     static {
-        CLOCK_DRIFT_TOLERANCE_NANOS = TimeUnit.MINUTES.toNanos(
-                Long.getLong("rx.scheduler.drift-tolerance", 15));
+        CLOCK_DRIFT_TOLERANCE_NANOS = TimeUnit.MINUTES.toNanos(15);
     }
 
     /**

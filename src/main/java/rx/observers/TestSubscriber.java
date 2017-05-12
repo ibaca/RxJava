@@ -21,6 +21,7 @@ import java.util.concurrent.*;
 import rx.*;
 import rx.Observer;
 import rx.exceptions.CompositeException;
+import rx.internal.util.GwtIncompatible;
 
 /**
  * A {@code TestSubscriber} is a variety of {@link Subscriber} that you can use for unit testing, to perform
@@ -356,6 +357,7 @@ public class TestSubscriber<T> extends Subscriber<T> {
      * @throws RuntimeException if the sleep is interrupted
      * @since 1.3
      */
+    @GwtIncompatible
     public final boolean awaitValueCount(int expected, long timeout, TimeUnit unit) {
         while (timeout != 0 && valueCount < expected) {
             try {
@@ -526,6 +528,7 @@ public class TestSubscriber<T> extends Subscriber<T> {
      *                        event did not carry an error of a subclass of the given class
      * @since 1.1.0
      */
+    @GwtIncompatible
     public void assertError(Class<? extends Throwable> clazz) {
         List<Throwable> err = errors;
         if (err.isEmpty()) {

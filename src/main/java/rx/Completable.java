@@ -2386,6 +2386,7 @@ public class Completable {
      * @return the new AssertableSubscriber instance
      * @since 1.3
      */
+    @GwtIncompatible
     public final AssertableSubscriber<Void> test() {
         AssertableSubscriberObservable<Void> ts = AssertableSubscriberObservable.create(Long.MAX_VALUE);
         subscribe(ts);

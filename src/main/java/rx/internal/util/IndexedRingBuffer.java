@@ -234,7 +234,7 @@ public final class IndexedRingBuffer<E> implements Subscription {
         }
 
         // possible system property for overriding
-        String sizeFromProperty = System.getProperty("rx.indexed-ring-buffer.size"); // also see RxRingBuffer
+        String sizeFromProperty = null; // also see RxRingBuffer
         if (sizeFromProperty != null) {
             try {
                 defaultSize = Integer.parseInt(sizeFromProperty);

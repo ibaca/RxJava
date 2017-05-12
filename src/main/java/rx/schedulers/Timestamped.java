@@ -72,6 +72,6 @@ public final class Timestamped<T> {
 
     @Override
     public String toString() {
-        return String.format("Timestamped(timestampMillis = %d, value = %s)", timestampMillis, value.toString());
+        return "Timestamped(timestampMillis = " + timestampMillis + ", value = " + value + ")";
     }
 }

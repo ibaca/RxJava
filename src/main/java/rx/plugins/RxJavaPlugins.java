@@ -15,8 +15,10 @@
  */
 package rx.plugins;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import rx.internal.util.GwtIncompatible;
 
 /**
  * Registry for plugin implementations that allows global override and handles the retrieval of correct
@@ -105,7 +107,7 @@ public class RxJavaPlugins {
     public RxJavaErrorHandler getErrorHandler() {
         if (errorHandler.get() == null) {
             // check for an implementation from System.getProperty first
-            Object impl = getPluginImplementationViaProperty(RxJavaErrorHandler.class, System.getProperties());
+            Object impl = getPluginImplementationViaProperty(RxJavaErrorHandler.class);
             if (impl == null) {
                 // nothing set via properties so initialize with default
                 errorHandler.compareAndSet(null, DEFAULT_ERROR_HANDLER);
@@ -147,7 +149,7 @@ public class RxJavaPlugins {
     public RxJavaObservableExecutionHook getObservableExecutionHook() {
         if (observableExecutionHook.get() == null) {
             // check for an implementation from System.getProperty first
-            Object impl = getPluginImplementationViaProperty(RxJavaObservableExecutionHook.class, System.getProperties());
+            Object impl = getPluginImplementationViaProperty(RxJavaObservableExecutionHook.class);
             if (impl == null) {
                 // nothing set via properties so initialize with default
                 observableExecutionHook.compareAndSet(null, RxJavaObservableExecutionHookDefault.getInstance());
@@ -189,7 +191,7 @@ public class RxJavaPlugins {
     public RxJavaSingleExecutionHook getSingleExecutionHook() {
         if (singleExecutionHook.get() == null) {
             // check for an implementation from System.getProperty first
-            Object impl = getPluginImplementationViaProperty(RxJavaSingleExecutionHook.class, System.getProperties());
+            Object impl = getPluginImplementationViaProperty(RxJavaSingleExecutionHook.class);
             if (impl == null) {
                 // nothing set via properties so initialize with default
                 singleExecutionHook.compareAndSet(null, RxJavaSingleExecutionHookDefault.getInstance());
@@ -232,7 +234,7 @@ public class RxJavaPlugins {
     public RxJavaCompletableExecutionHook getCompletableExecutionHook() {
         if (completableExecutionHook.get() == null) {
             // check for an implementation from System.getProperty first
-            Object impl = getPluginImplementationViaProperty(RxJavaCompletableExecutionHook.class, System.getProperties());
+            Object impl = getPluginImplementationViaProperty(RxJavaCompletableExecutionHook.class);
             if (impl == null) {
                 // nothing set via properties so initialize with default
                 completableExecutionHook.compareAndSet(null, new RxJavaCompletableExecutionHook() { });
@@ -262,68 +264,112 @@ public class RxJavaPlugins {
         }
     }
 
-    /* test */ static Object getPluginImplementationViaProperty(Class<?> pluginClass, Properties propsIn) {
-        // Make a defensive clone because traversal may fail with ConcurrentModificationException
-        // if the properties get changed by something outside RxJava.
-        Properties props = (Properties)propsIn.clone();
+    public static int intConfiguration(String key, int defaultValue) {
+        //try {
+        //    return Integer.decode(System.getProperty(key));
+        //} catch (RuntimeException ignore) {
+            return defaultValue;
+        //}
+    }
 
-        final String classSimpleName = pluginClass.getSimpleName();
-        /*
-         * Check system properties for plugin class.
-         * <p>
-         * This will only happen during system startup thus it's okay to use the synchronized
-         * System.getProperties as it will never get called in normal operations.
-         */
+    public static long longConfiguration(String key, long defaultValue) {
+        //try {
+        //    return Long.decode(System.getProperty(key));
+        //} catch (RuntimeException ignore) {
+            return defaultValue;
+        //}
+    }
 
-        String pluginPrefix = "rxjava.plugin.";
+    private static Object getPluginImplementationViaProperty(Class<?> pluginClass) {
+        return getPluginImplementationViaProperty(pluginClass, propertiesLoader.allConfigurations());
+    }
 
-        String defaultKey = pluginPrefix + classSimpleName + ".implementation";
-        String implementingClass = props.getProperty(defaultKey);
+    /* test */ static Object getPluginImplementationViaProperty(Class<?> pluginClass, Map<?, ?> propsIn) {
+        return propertiesLoader.getPluginImplementationViaProperty(pluginClass, propsIn);
+    }
 
-        if (implementingClass == null) {
-            String classSuffix = ".class";
-            String implSuffix = ".impl";
+    private static final  PropertiesLoader propertiesLoader = new StdPropertiesLoader();
 
-            for (Map.Entry<Object, Object> e : props.entrySet()) {
-                String key = e.getKey().toString();
-                if (key.startsWith(pluginPrefix) && key.endsWith(classSuffix)) {
-                    String value = e.getValue().toString();
+    static class PropertiesLoader {
+        Map<?, ?> allConfigurations() {
+            return null;
+        }
 
-                    if (classSimpleName.equals(value)) {
-                        String index = key.substring(0, key.length() - classSuffix.length()).substring(pluginPrefix.length());
+        Object getPluginImplementationViaProperty(Class<?> pluginClass, Map<?, ?> propsIn) {
+            return null;
+        }
+    }
 
-                        String implKey = pluginPrefix + index + implSuffix;
+    static class StdPropertiesLoader extends PropertiesLoader {
+        @GwtIncompatible("System.getProperties")
+        Map<?, ?> allConfigurations() {
+            return System.getProperties();
+        }
 
-                        implementingClass = props.getProperty(implKey);
+        @GwtIncompatible("System.getProperties")
+        Object getPluginImplementationViaProperty(Class<?> pluginClass, Map<?, ?> propsIn) {
+            // Make a defensive clone because traversal may fail with ConcurrentModificationException
+            // if the properties get changed by something outside RxJava.
+            Map<?, ?> props = new HashMap<Object, Object>(propsIn);
 
-                        if (implementingClass == null) {
-                            throw new IllegalStateException("Implementing class declaration for " + classSimpleName + " missing: " + implKey);
+            final String classSimpleName = pluginClass.getSimpleName();
+            /*
+             * Check system properties for plugin class.
+             * <p>
+             * This will only happen during system startup thus it's okay to use the synchronized
+             * System.getProperties as it will never get called in normal operations.
+             */
+
+            String pluginPrefix = "rxjava.plugin.";
+
+            String defaultKey = pluginPrefix + classSimpleName + ".implementation";
+            String implementingClass = props.get(defaultKey) instanceof String ? (String) props.get(defaultKey) : null;
+
+            if (implementingClass == null) {
+                String classSuffix = ".class";
+                String implSuffix = ".impl";
+
+                for (Map.Entry<?, ?> e : props.entrySet()) {
+                    String key = e.getKey().toString();
+                    if (key.startsWith(pluginPrefix) && key.endsWith(classSuffix)) {
+                        String value = e.getValue().toString();
+
+                        if (classSimpleName.equals(value)) {
+                            String index = key.substring(0, key.length() - classSuffix.length()).substring(pluginPrefix.length());
+
+                            String implKey = pluginPrefix + index + implSuffix;
+
+                            implementingClass = props.get(implKey) instanceof String ? (String) props.get(implKey) : null;
+
+                            if (implementingClass == null) {
+                                throw new IllegalStateException("Implementing class declaration for " + classSimpleName + " missing: " + implKey);
+                            }
+
+                            break;
                         }
-
-                        break;
                     }
                 }
             }
-        }
 
-        if (implementingClass != null) {
-            try {
-                Class<?> cls = Class.forName(implementingClass);
-                // narrow the scope (cast) to the type we're expecting
-                cls = cls.asSubclass(pluginClass);
-                return cls.newInstance();
-            } catch (ClassCastException e) {
-                throw new IllegalStateException(classSimpleName + " implementation is not an instance of " + classSimpleName + ": " + implementingClass, e);
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(classSimpleName + " implementation class not found: " + implementingClass, e);
-            } catch (InstantiationException e) {
-                throw new IllegalStateException(classSimpleName + " implementation not able to be instantiated: " + implementingClass, e);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException(classSimpleName + " implementation not able to be accessed: " + implementingClass, e);
+            if (implementingClass != null) {
+                try {
+                    Class<?> cls = Class.forName(implementingClass);
+                    // narrow the scope (cast) to the type we're expecting
+                    cls = cls.asSubclass(pluginClass);
+                    return cls.newInstance();
+                } catch (ClassCastException e) {
+                    throw new IllegalStateException(classSimpleName + " implementation is not an instance of " + classSimpleName + ": " + implementingClass, e);
+                } catch (ClassNotFoundException e) {
+                    throw new IllegalStateException(classSimpleName + " implementation class not found: " + implementingClass, e);
+                } catch (InstantiationException e) {
+                    throw new IllegalStateException(classSimpleName + " implementation not able to be instantiated: " + implementingClass, e);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalStateException(classSimpleName + " implementation not able to be accessed: " + implementingClass, e);
+                }
             }
-        }
 
-        return null;
+            return null;
+        }
     }
 
     /**
@@ -339,7 +385,7 @@ public class RxJavaPlugins {
     public RxJavaSchedulersHook getSchedulersHook() {
         if (schedulersHook.get() == null) {
             // check for an implementation from System.getProperty first
-            Object impl = getPluginImplementationViaProperty(RxJavaSchedulersHook.class, System.getProperties());
+            Object impl = getPluginImplementationViaProperty(RxJavaSchedulersHook.class);
             if (impl == null) {
                 // nothing set via properties so initialize with default
                 schedulersHook.compareAndSet(null, RxJavaSchedulersHook.getDefaultInstance());
