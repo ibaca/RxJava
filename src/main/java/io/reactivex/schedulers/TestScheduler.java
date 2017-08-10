@@ -13,6 +13,7 @@
 
 package io.reactivex.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.Queue;
 import java.util.concurrent.*;
 
@@ -27,6 +28,7 @@ import io.reactivex.internal.functions.ObjectHelper;
  * a scheduler without introducing real concurrency and allows manually advancing
  * a virtual time.
  */
+@GwtIncompatible
 public final class TestScheduler extends Scheduler {
     /** The ordered queue for the runnable tasks. */
     final Queue<TimedRunnable> queue = new PriorityBlockingQueue<TimedRunnable>(11);

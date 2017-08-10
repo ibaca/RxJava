@@ -40,7 +40,7 @@ import io.reactivex.internal.util.Pow2;
  */
 public final class SpscArrayQueue<E> extends AtomicReferenceArray<E> implements SimplePlainQueue<E> {
     private static final long serialVersionUID = -1296597691183856449L;
-    private static final Integer MAX_LOOK_AHEAD_STEP = Integer.getInteger("jctools.spsc.max.lookahead.step", 4096);
+    private static final Integer MAX_LOOK_AHEAD_STEP = 4096;
     final int mask;
     final AtomicLong producerIndex;
     long producerLookAhead;

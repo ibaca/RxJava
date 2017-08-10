@@ -12,6 +12,7 @@
  */
 package io.reactivex.subscribers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.concurrent.atomic.*;
 
 import org.reactivestreams.*;
@@ -37,6 +38,7 @@ import io.reactivex.observers.BaseTestConsumer;
  *
  * @param <T> the value type
  */
+@GwtIncompatible
 public class TestSubscriber<T>
 extends BaseTestConsumer<T, TestSubscriber<T>>
 implements FlowableSubscriber<T>, Subscription, Disposable {

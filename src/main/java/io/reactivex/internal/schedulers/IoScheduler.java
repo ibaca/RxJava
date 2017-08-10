@@ -17,6 +17,7 @@
 package io.reactivex.internal.schedulers;
 
 import io.reactivex.Scheduler;
+import io.reactivex.annotations.GwtIncompatible;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.*;
 import io.reactivex.internal.disposables.EmptyDisposable;
@@ -27,6 +28,7 @@ import java.util.concurrent.atomic.*;
 /**
  * Scheduler that creates and caches a set of thread pools and reuses them if possible.
  */
+@GwtIncompatible
 public final class IoScheduler extends Scheduler {
     private static final String WORKER_THREAD_NAME_PREFIX = "RxCachedThreadScheduler";
     static final RxThreadFactory WORKER_THREAD_FACTORY;
@@ -50,7 +52,7 @@ public final class IoScheduler extends Scheduler {
         SHUTDOWN_THREAD_WORKER.dispose();
 
         int priority = Math.max(Thread.MIN_PRIORITY, Math.min(Thread.MAX_PRIORITY,
-                Integer.getInteger(KEY_IO_PRIORITY, Thread.NORM_PRIORITY)));
+                Thread.NORM_PRIORITY));
 
         WORKER_THREAD_FACTORY = new RxThreadFactory(WORKER_THREAD_NAME_PREFIX, priority);
 

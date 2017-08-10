@@ -125,7 +125,7 @@ public final class SingleCreate<T> extends Single<T> {
 
         @Override
         public String toString() {
-            return String.format("%s{%s}", getClass().getSimpleName(), super.toString());
+            return getClass().getSimpleName() + '{' + super.toString() + '}';
         }
     }
 }

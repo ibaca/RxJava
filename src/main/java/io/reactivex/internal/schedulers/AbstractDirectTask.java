@@ -16,6 +16,7 @@
 
 package io.reactivex.internal.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -27,6 +28,7 @@ import io.reactivex.schedulers.SchedulerRunnableIntrospection;
  * Base functionality for direct tasks that manage a runnable and cancellation/completion.
  * @since 2.0.8
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 abstract class AbstractDirectTask
 extends AtomicReference<Future<?>>
 implements Disposable, SchedulerRunnableIntrospection {

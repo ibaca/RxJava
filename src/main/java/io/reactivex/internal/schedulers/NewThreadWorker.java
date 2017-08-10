@@ -13,6 +13,7 @@
 
 package io.reactivex.internal.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.concurrent.*;
 
 import io.reactivex.Scheduler;
@@ -27,6 +28,7 @@ import io.reactivex.plugins.RxJavaPlugins;
  * worker but doesn't perform task-tracking operations.
  *
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 public class NewThreadWorker extends Scheduler.Worker implements Disposable {
     private final ScheduledExecutorService executor;
 

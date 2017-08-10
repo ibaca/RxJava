@@ -165,9 +165,6 @@ public final class BehaviorSubject<T> extends Subject<T> {
 
     @SuppressWarnings("rawtypes")
     static final BehaviorDisposable[] TERMINATED = new BehaviorDisposable[0];
-    final ReadWriteLock lock;
-    final Lock readLock;
-    final Lock writeLock;
 
     final AtomicReference<Throwable> terminalEvent;
 
@@ -209,9 +206,6 @@ public final class BehaviorSubject<T> extends Subject<T> {
      */
     @SuppressWarnings("unchecked")
     BehaviorSubject() {
-        this.lock = new ReentrantReadWriteLock();
-        this.readLock = lock.readLock();
-        this.writeLock = lock.writeLock();
         this.subscribers = new AtomicReference<BehaviorDisposable<T>[]>(EMPTY);
         this.value = new AtomicReference<Object>();
         this.terminalEvent = new AtomicReference<Throwable>();
@@ -461,10 +455,8 @@ public final class BehaviorSubject<T> extends Subject<T> {
     }
 
     void setCurrent(Object o) {
-        writeLock.lock();
         index++;
         value.lazySet(o);
-        writeLock.unlock();
     }
 
     static final class BehaviorDisposable<T> implements Disposable, NonThrowingPredicate<Object> {
@@ -515,12 +507,9 @@ public final class BehaviorSubject<T> extends Subject<T> {
                 }
 
                 BehaviorSubject<T> s = state;
-                Lock lock = s.readLock;
 
-                lock.lock();
                 index = s.index;
                 o = s.value.get();
-                lock.unlock();
 
                 emitting = o != null;
                 next = true;

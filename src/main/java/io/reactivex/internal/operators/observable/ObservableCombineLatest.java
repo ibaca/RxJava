@@ -13,6 +13,7 @@
 
 package io.reactivex.internal.operators.observable;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.*;
 
 import io.reactivex.*;
@@ -229,7 +230,7 @@ public final class ObservableCombineLatest<T, R> extends Observable<R> {
                 }
                 latest[index] = item;
                 if (a == latest.length) {
-                    queue.offer(latest.clone());
+                    queue.offer(Arrays.copyOf(latest, latest.length));
                     shouldDrain = true;
                 }
             }
