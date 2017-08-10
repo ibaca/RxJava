@@ -13,6 +13,7 @@
 
 package io.reactivex.internal.operators.flowable;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.atomic.*;
 
@@ -236,7 +237,7 @@ extends Flowable<R> {
 
                 if (os.length == localNonEmptySources) {
 
-                    queue.offer(subscribers[index], os.clone());
+                    queue.offer(subscribers[index], Arrays.copyOf(os, os.length));
 
                     replenishInsteadOfDrain = false;
                 } else {

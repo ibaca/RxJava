@@ -16,6 +16,7 @@
 
 package io.reactivex.internal.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -26,6 +27,7 @@ import io.reactivex.plugins.RxJavaPlugins;
 /**
  * Wrapper for a regular task that gets immediately rescheduled when the task completed.
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 final class InstantPeriodicTask implements Callable<Void>, Disposable {
 
     final Runnable task;

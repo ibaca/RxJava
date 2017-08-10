@@ -13,6 +13,7 @@
 package io.reactivex.internal.schedulers;
 
 import io.reactivex.Scheduler;
+import io.reactivex.annotations.GwtIncompatible;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.*;
 import io.reactivex.internal.disposables.EmptyDisposable;
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * A scheduler with a shared, single threaded underlying ScheduledExecutorService.
  * @since 2.0
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 public final class SingleScheduler extends Scheduler {
 
     final ThreadFactory threadFactory;
@@ -43,7 +45,7 @@ public final class SingleScheduler extends Scheduler {
         SHUTDOWN.shutdown();
 
         int priority = Math.max(Thread.MIN_PRIORITY, Math.min(Thread.MAX_PRIORITY,
-                Integer.getInteger(KEY_SINGLE_PRIORITY, Thread.NORM_PRIORITY)));
+                Thread.NORM_PRIORITY));
 
         SINGLE_THREAD_FACTORY = new RxThreadFactory(THREAD_NAME_PREFIX, priority, true);
     }

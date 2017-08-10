@@ -13,6 +13,7 @@
 
 package io.reactivex.internal.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
@@ -22,13 +23,13 @@ import io.reactivex.disposables.*;
 import io.reactivex.internal.disposables.*;
 import io.reactivex.internal.functions.Functions;
 import io.reactivex.internal.queue.MpscLinkedQueue;
-import io.reactivex.internal.schedulers.ExecutorScheduler.ExecutorWorker.*;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.*;
 
 /**
  * Wraps an Executor and provides the Scheduler API over it.
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 public final class ExecutorScheduler extends Scheduler {
 
     final boolean interruptibleWorker;
@@ -62,11 +63,11 @@ public final class ExecutorScheduler extends Scheduler {
             }
 
             if (interruptibleWorker) {
-                InterruptibleRunnable interruptibleTask = new InterruptibleRunnable(decoratedRun, null);
+                ExecutorWorker.InterruptibleRunnable interruptibleTask = new ExecutorWorker.InterruptibleRunnable(decoratedRun, null);
                 executor.execute(interruptibleTask);
                 return interruptibleTask;
             } else {
-                BooleanRunnable br = new BooleanRunnable(decoratedRun);
+                ExecutorWorker.BooleanRunnable br = new ExecutorWorker.BooleanRunnable(decoratedRun);
                 executor.execute(br);
                 return br;
             }

@@ -16,6 +16,7 @@
 
 package io.reactivex.internal.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import io.reactivex.plugins.RxJavaPlugins;
 
 /**
@@ -23,6 +24,7 @@ import io.reactivex.plugins.RxJavaPlugins;
  * action periodically and manages completion/cancellation.
  * @since 2.0.8
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 public final class ScheduledDirectPeriodicTask extends AbstractDirectTask implements Runnable {
 
     private static final long serialVersionUID = 1811839108042568751L;

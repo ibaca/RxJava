@@ -10009,6 +10009,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible("Class.isInstance")
     public final <U> Observable<U> ofType(final Class<U> clazz) {
         ObjectHelper.requireNonNull(clazz, "clazz is null");
         return filter(Functions.isInstanceOf(clazz)).cast(clazz);
@@ -15459,6 +15460,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestObserver<T> test() { // NoPMD
         TestObserver<T> to = new TestObserver<T>();
         subscribe(to);
@@ -15479,6 +15481,7 @@ public abstract class Observable<T> implements ObservableSource<T> {
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestObserver<T> test(boolean dispose) { // NoPMD
         TestObserver<T> to = new TestObserver<T>();
         if (dispose) {

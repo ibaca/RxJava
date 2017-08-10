@@ -30,7 +30,7 @@ import io.reactivex.internal.util.Pow2;
  * @param <T> the contained value type
  */
 public final class SpscLinkedArrayQueue<T> implements SimplePlainQueue<T> {
-    static final int MAX_LOOK_AHEAD_STEP = Integer.getInteger("jctools.spsc.max.lookahead.step", 4096);
+    static final int MAX_LOOK_AHEAD_STEP = 4096;
     final AtomicLong producerIndex = new AtomicLong();
 
     int producerLookAheadStep;

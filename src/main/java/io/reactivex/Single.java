@@ -4067,6 +4067,7 @@ public abstract class Single<T> implements SingleSource<T> {
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestObserver<T> test() {
         TestObserver<T> to = new TestObserver<T>();
         subscribe(to);
@@ -4086,6 +4087,7 @@ public abstract class Single<T> implements SingleSource<T> {
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestObserver<T> test(boolean cancelled) {
         TestObserver<T> to = new TestObserver<T>();
 
