@@ -16,6 +16,7 @@
 
 package io.reactivex.internal.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,6 +26,7 @@ import io.reactivex.plugins.RxJavaPlugins;
 /**
  * Manages the creating of ScheduledExecutorServices and sets up purging.
  */
+@GwtIncompatible
 public final class SchedulerPoolFactory {
     /** Utility class. */
     private SchedulerPoolFactory() {
@@ -89,21 +91,8 @@ public final class SchedulerPoolFactory {
     }
 
     static {
-        boolean purgeEnable = true;
-        int purgePeriod = 1;
-
-        Properties properties = System.getProperties();
-
-        if (properties.containsKey(PURGE_ENABLED_KEY)) {
-            purgeEnable = Boolean.getBoolean(PURGE_ENABLED_KEY);
-        }
-
-        if (purgeEnable && properties.containsKey(PURGE_PERIOD_SECONDS_KEY)) {
-            purgePeriod = Integer.getInteger(PURGE_PERIOD_SECONDS_KEY, purgePeriod);
-        }
-
-        PURGE_ENABLED = purgeEnable;
-        PURGE_PERIOD_SECONDS = purgePeriod;
+        PURGE_ENABLED = true;
+        PURGE_PERIOD_SECONDS = 1;
 
         start();
     }

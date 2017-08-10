@@ -16,6 +16,8 @@
 
 package io.reactivex.internal.schedulers;
 
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,18 +58,13 @@ public final class TrampolineScheduler extends Scheduler {
     @NonNull
     @Override
     public Disposable scheduleDirect(@NonNull Runnable run, long delay, TimeUnit unit) {
-        try {
-            unit.sleep(delay);
-            run.run();
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            RxJavaPlugins.onError(ex);
-        }
+        if (delay > 0) throw new UnsupportedOperationException();
+        run.run();
         return EmptyDisposable.INSTANCE;
     }
 
     static final class TrampolineWorker extends Scheduler.Worker implements Disposable {
-        final PriorityBlockingQueue<TimedRunnable> queue = new PriorityBlockingQueue<TimedRunnable>();
+        final Queue<TimedRunnable> queue = new PriorityQueue<TimedRunnable>();
 
         private final AtomicInteger wip = new AtomicInteger();
 

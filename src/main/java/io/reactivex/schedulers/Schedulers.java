@@ -14,6 +14,7 @@
 package io.reactivex.schedulers;
 
 import io.reactivex.Scheduler;
+import io.reactivex.annotations.GwtIncompatible;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.internal.schedulers.*;
 import io.reactivex.plugins.RxJavaPlugins;
@@ -54,18 +55,22 @@ public final class Schedulers {
     @NonNull
     static final Scheduler NEW_THREAD;
 
+    @GwtIncompatible
     static final class SingleHolder {
         static final Scheduler DEFAULT = new SingleScheduler();
     }
 
+    @GwtIncompatible
     static final class ComputationHolder {
         static final Scheduler DEFAULT = new ComputationScheduler();
     }
 
+    @GwtIncompatible
     static final class IoHolder {
         static final Scheduler DEFAULT = new IoScheduler();
     }
 
+    @GwtIncompatible
     static final class NewThreadHolder {
         static final Scheduler DEFAULT = new NewThreadScheduler();
     }
@@ -337,6 +342,7 @@ public final class Schedulers {
      * @return the new Scheduler wrapping the Executor
      */
     @NonNull
+    @GwtIncompatible
     public static Scheduler from(@NonNull Executor executor) {
         return new ExecutorScheduler(executor);
     }
@@ -345,6 +351,7 @@ public final class Schedulers {
      * Shuts down the standard Schedulers.
      * <p>The operation is idempotent and thread-safe.
      */
+    @GwtIncompatible
     public static void shutdown() {
         computation().shutdown();
         io().shutdown();
@@ -358,6 +365,7 @@ public final class Schedulers {
      * Starts the standard Schedulers.
      * <p>The operation is idempotent and thread-safe.
      */
+    @GwtIncompatible
     public static void start() {
         computation().start();
         io().start();
@@ -370,28 +378,28 @@ public final class Schedulers {
     static final class IOTask implements Callable<Scheduler> {
         @Override
         public Scheduler call() throws Exception {
-            return IoHolder.DEFAULT;
+            throw new UnsupportedOperationException();
         }
     }
 
     static final class NewThreadTask implements Callable<Scheduler> {
         @Override
         public Scheduler call() throws Exception {
-            return NewThreadHolder.DEFAULT;
+            throw new UnsupportedOperationException();
         }
     }
 
     static final class SingleTask implements Callable<Scheduler> {
         @Override
         public Scheduler call() throws Exception {
-            return SingleHolder.DEFAULT;
+            throw new UnsupportedOperationException();
         }
     }
 
     static final class ComputationTask implements Callable<Scheduler> {
         @Override
         public Scheduler call() throws Exception {
-            return ComputationHolder.DEFAULT;
+            throw new UnsupportedOperationException();
         }
     }
 }

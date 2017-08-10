@@ -13,6 +13,7 @@
 
 package io.reactivex.observers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -28,6 +29,7 @@ import io.reactivex.internal.util.*;
  * @param <T> the value type consumed
  * @param <U> the subclass of this BaseTestConsumer
  */
+@GwtIncompatible
 public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> implements Disposable {
     /** The latch that indicates an onError or onComplete has been called. */
     protected final CountDownLatch done;
@@ -272,6 +274,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
      * @return this;
      */
     @SuppressWarnings({ "unchecked", "rawtypes", "cast" })
+    @GwtIncompatible("Class.isInstance")
     public final U assertError(Class<? extends Throwable> errorClass) {
         return (U)assertError((Predicate)Functions.isInstanceOf(errorClass));
     }

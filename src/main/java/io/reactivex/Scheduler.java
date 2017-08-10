@@ -37,8 +37,7 @@ public abstract class Scheduler {
      */
     static final long CLOCK_DRIFT_TOLERANCE_NANOSECONDS;
     static {
-        CLOCK_DRIFT_TOLERANCE_NANOSECONDS = TimeUnit.MINUTES.toNanos(
-                Long.getLong("rx2.scheduler.drift-tolerance", 15));
+        CLOCK_DRIFT_TOLERANCE_NANOSECONDS = TimeUnit.MINUTES.toNanos(15);
     }
 
     /**
@@ -458,11 +457,7 @@ public abstract class Scheduler {
 
         @Override
         public void dispose() {
-            if (runner == Thread.currentThread() && w instanceof NewThreadWorker) {
-                ((NewThreadWorker)w).shutdown();
-            } else {
-                w.dispose();
-            }
+            w.dispose();
         }
 
         @Override

@@ -81,10 +81,6 @@ public final class BehaviorProcessor<T> extends FlowableProcessor<T> {
     @SuppressWarnings("rawtypes")
     static final BehaviorSubscription[] TERMINATED = new BehaviorSubscription[0];
 
-    final ReadWriteLock lock;
-    final Lock readLock;
-    final Lock writeLock;
-
     final AtomicReference<Object> value;
 
     final AtomicReference<Throwable> terminalEvent;
@@ -127,9 +123,6 @@ public final class BehaviorProcessor<T> extends FlowableProcessor<T> {
     @SuppressWarnings("unchecked")
     BehaviorProcessor() {
         this.value = new AtomicReference<Object>();
-        this.lock = new ReentrantReadWriteLock();
-        this.readLock = lock.readLock();
-        this.writeLock = lock.writeLock();
         this.subscribers = new AtomicReference<BehaviorSubscription<T>[]>(EMPTY);
         this.terminalEvent = new AtomicReference<Throwable>();
     }
@@ -418,11 +411,8 @@ public final class BehaviorProcessor<T> extends FlowableProcessor<T> {
     }
 
     void setCurrent(Object o) {
-        Lock wl = writeLock;
-        wl.lock();
         index++;
         value.lazySet(o);
-        wl.unlock();
     }
 
     static final class BehaviorSubscription<T> extends AtomicLong implements Subscription, NonThrowingPredicate<Object> {
@@ -478,11 +468,8 @@ public final class BehaviorProcessor<T> extends FlowableProcessor<T> {
 
                 BehaviorProcessor<T> s = state;
 
-                Lock readLock = s.readLock;
-                readLock.lock();
                 index = s.index;
                 o = s.value.get();
-                readLock.unlock();
 
                 emitting = o != null;
                 next = true;

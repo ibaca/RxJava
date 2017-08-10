@@ -13,6 +13,7 @@
 
 package io.reactivex.internal.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
@@ -28,6 +29,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * Wraps an Executor and provides the Scheduler API over it.
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 public final class ExecutorScheduler extends Scheduler {
 
     @NonNull

@@ -15,6 +15,7 @@
  */
 package io.reactivex.exceptions;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.io.*;
 import java.util.*;
 
@@ -165,6 +166,7 @@ public final class CompositeException extends RuntimeException {
     }
 
     @Override
+    @GwtIncompatible
     public void printStackTrace(PrintWriter s) {
         printStackTrace(new WrappedPrintWriter(s));
     }
@@ -223,6 +225,7 @@ public final class CompositeException extends RuntimeException {
         }
     }
 
+    @GwtIncompatible
     static final class WrappedPrintWriter extends PrintStreamOrWriter {
         private final PrintWriter printWriter;
 

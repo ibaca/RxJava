@@ -16,6 +16,7 @@
 
 package io.reactivex.internal.schedulers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.concurrent.Callable;
 
 /**
@@ -23,6 +24,7 @@ import java.util.concurrent.Callable;
  * action and manages completion/cancellation.
  * @since 2.0.8
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 public final class ScheduledDirectTask extends AbstractDirectTask implements Callable<Void> {
 
     private static final long serialVersionUID = 1811839108042568751L;

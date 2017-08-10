@@ -2009,6 +2009,7 @@ public abstract class Completable implements CompletableSource {
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestObserver<Void> test() {
         TestObserver<Void> ts = new TestObserver<Void>();
         subscribe(ts);
@@ -2028,6 +2029,7 @@ public abstract class Completable implements CompletableSource {
      */
     @CheckReturnValue
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestObserver<Void> test(boolean cancelled) {
         TestObserver<Void> ts = new TestObserver<Void>();
 

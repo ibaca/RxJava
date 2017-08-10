@@ -12,6 +12,7 @@
  */
 package io.reactivex.observers;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.reactivex.*;
@@ -31,6 +32,7 @@ import io.reactivex.internal.util.*;
  *
  * @param <T> the value type
  */
+@GwtIncompatible
 public class TestObserver<T>
 extends BaseTestConsumer<T, TestObserver<T>>
 implements Observer<T>, Disposable, MaybeObserver<T>, SingleObserver<T>, CompletableObserver {

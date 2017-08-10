@@ -184,7 +184,7 @@ public final class ObservableCombineLatest<T, R> extends Observable<R> {
                         || (value == null && o == null); // or this source completed without any value
                 if (!empty) {
                     if (value != null && f) {
-                        queue.offer(cs, latest.clone());
+                        queue.offer(cs, Arrays.copyOf(latest, latest.length));
                     } else
                     if (value == null && errors.get() != null) {
                         done = true; // if this source completed without a value
