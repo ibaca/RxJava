@@ -17,6 +17,7 @@
 package io.reactivex.internal.schedulers;
 
 import io.reactivex.Scheduler;
+import io.reactivex.annotations.GwtIncompatible;
 import io.reactivex.annotations.NonNull;
 
 import java.util.concurrent.ThreadFactory;
@@ -24,6 +25,7 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Schedules work on a new thread.
  */
+@GwtIncompatible("java.util.concurrent.FutureTask")
 public final class NewThreadScheduler extends Scheduler {
 
     final ThreadFactory threadFactory;
@@ -36,7 +38,7 @@ public final class NewThreadScheduler extends Scheduler {
 
     static {
         int priority = Math.max(Thread.MIN_PRIORITY, Math.min(Thread.MAX_PRIORITY,
-                Integer.getInteger(KEY_NEWTHREAD_PRIORITY, Thread.NORM_PRIORITY)));
+                Thread.NORM_PRIORITY));
 
         THREAD_FACTORY = new RxThreadFactory(THREAD_NAME_PREFIX, priority);
     }

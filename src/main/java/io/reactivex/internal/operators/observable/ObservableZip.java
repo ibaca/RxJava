@@ -194,7 +194,7 @@ public final class ObservableZip<T, R> extends Observable<R> {
 
                     R v;
                     try {
-                        v = ObjectHelper.requireNonNull(zipper.apply(os.clone()), "The zipper returned a null value");
+                        v = ObjectHelper.requireNonNull(zipper.apply(Arrays.copyOf(os, os.length)), "The zipper returned a null value");
                     } catch (Throwable ex) {
                         Exceptions.throwIfFatal(ex);
                         cancel();

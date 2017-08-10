@@ -84,7 +84,8 @@ public final class ObservableReplay<T> extends ConnectableObservable<T> implemen
      */
     @SuppressWarnings("unchecked")
     public static <T> ConnectableObservable<T> createFrom(ObservableSource<? extends T> source) {
-        return create(source, DEFAULT_UNBOUNDED_FACTORY);
+        ObservableSource<T> sourceCast = (ObservableSource<T>) source;
+        return create(sourceCast, DEFAULT_UNBOUNDED_FACTORY);
     }
 
     /**

@@ -19,6 +19,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.reactivex.Scheduler;
+import io.reactivex.annotations.GwtIncompatible;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.*;
 import io.reactivex.internal.disposables.*;
@@ -28,6 +29,7 @@ import io.reactivex.internal.functions.ObjectHelper;
  * Holds a fixed pool of worker threads and assigns them
  * to requested Scheduler.Workers in a round-robin fashion.
  */
+@GwtIncompatible("java.util.concurrent")
 public final class ComputationScheduler extends Scheduler implements SchedulerMultiWorkerSupport {
     /** This will indicate no pool is active. */
     static final FixedSchedulerPool NONE;
@@ -50,13 +52,13 @@ public final class ComputationScheduler extends Scheduler implements SchedulerMu
     private static final String KEY_COMPUTATION_PRIORITY = "rx2.computation-priority";
 
     static {
-        MAX_THREADS = cap(Runtime.getRuntime().availableProcessors(), Integer.getInteger(KEY_MAX_THREADS, 0));
+        MAX_THREADS = cap(Runtime.getRuntime().availableProcessors(), 0);
 
         SHUTDOWN_WORKER = new PoolWorker(new RxThreadFactory("RxComputationShutdown"));
         SHUTDOWN_WORKER.dispose();
 
         int priority = Math.max(Thread.MIN_PRIORITY, Math.min(Thread.MAX_PRIORITY,
-                Integer.getInteger(KEY_COMPUTATION_PRIORITY, Thread.NORM_PRIORITY)));
+                Thread.NORM_PRIORITY));
 
         THREAD_FACTORY = new RxThreadFactory(THREAD_NAME_PREFIX, priority, true);
 

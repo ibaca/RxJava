@@ -81,7 +81,8 @@ public final class FlowableReplay<T> extends ConnectableFlowable<T> implements H
      */
     @SuppressWarnings("unchecked")
     public static <T> ConnectableFlowable<T> createFrom(Flowable<? extends T> source) {
-        return create(source, DEFAULT_UNBOUNDED_FACTORY);
+        Flowable<T> sourceCast = (Flowable<T>) source;
+        return create(sourceCast, DEFAULT_UNBOUNDED_FACTORY);
     }
 
     /**

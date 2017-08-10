@@ -61,7 +61,7 @@ public abstract class Flowable<T> implements Publisher<T> {
     /** The default buffer size. */
     static final int BUFFER_SIZE;
     static {
-        BUFFER_SIZE = Math.max(1, Integer.getInteger("rx2.buffer-size", 128));
+        BUFFER_SIZE = Math.max(1, 128);
     }
 
     /**
@@ -11247,6 +11247,7 @@ public abstract class Flowable<T> implements Publisher<T> {
     @CheckReturnValue
     @BackpressureSupport(BackpressureKind.PASS_THROUGH)
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible("Class.isInstance")
     public final <U> Flowable<U> ofType(final Class<U> clazz) {
         ObjectHelper.requireNonNull(clazz, "clazz is null");
         return filter(Functions.isInstanceOf(clazz)).cast(clazz);
@@ -18062,6 +18063,7 @@ public abstract class Flowable<T> implements Publisher<T> {
     @CheckReturnValue
     @BackpressureSupport(BackpressureKind.UNBOUNDED_IN)
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestSubscriber<T> test() { // NoPMD
         TestSubscriber<T> ts = new TestSubscriber<T>();
         subscribe(ts);
@@ -18084,6 +18086,7 @@ public abstract class Flowable<T> implements Publisher<T> {
     @CheckReturnValue
     @BackpressureSupport(BackpressureKind.FULL)
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestSubscriber<T> test(long initialRequest) { // NoPMD
         TestSubscriber<T> ts = new TestSubscriber<T>(initialRequest);
         subscribe(ts);
@@ -18108,6 +18111,7 @@ public abstract class Flowable<T> implements Publisher<T> {
     @CheckReturnValue
     @BackpressureSupport(BackpressureKind.FULL)
     @SchedulerSupport(SchedulerSupport.NONE)
+    @GwtIncompatible
     public final TestSubscriber<T> test(long initialRequest, boolean cancel) { // NoPMD
         TestSubscriber<T> ts = new TestSubscriber<T>(initialRequest);
         if (cancel) {

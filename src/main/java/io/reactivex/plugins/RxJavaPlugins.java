@@ -1207,6 +1207,7 @@ public final class RxJavaPlugins {
      * @since 2.1
      */
     @NonNull
+    @GwtIncompatible
     public static Scheduler createComputationScheduler(@NonNull ThreadFactory threadFactory) {
         return new ComputationScheduler(ObjectHelper.requireNonNull(threadFactory, "threadFactory is null"));
     }
@@ -1221,6 +1222,7 @@ public final class RxJavaPlugins {
      * @since 2.1
      */
     @NonNull
+    @GwtIncompatible
     public static Scheduler createIoScheduler(@NonNull ThreadFactory threadFactory) {
         return new IoScheduler(ObjectHelper.requireNonNull(threadFactory, "threadFactory is null"));
     }
@@ -1235,6 +1237,7 @@ public final class RxJavaPlugins {
      * @since 2.1
      */
     @NonNull
+    @GwtIncompatible
     public static Scheduler createNewThreadScheduler(@NonNull ThreadFactory threadFactory) {
         return new NewThreadScheduler(ObjectHelper.requireNonNull(threadFactory, "threadFactory is null"));
     }
@@ -1249,6 +1252,7 @@ public final class RxJavaPlugins {
      * @since 2.1
      */
     @NonNull
+    @GwtIncompatible
     public static Scheduler createSingleScheduler(@NonNull ThreadFactory threadFactory) {
         return new SingleScheduler(ObjectHelper.requireNonNull(threadFactory, "threadFactory is null"));
     }

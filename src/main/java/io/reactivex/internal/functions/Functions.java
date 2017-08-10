@@ -12,6 +12,7 @@
  */
 package io.reactivex.internal.functions;
 
+import io.reactivex.annotations.GwtIncompatible;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -219,7 +220,8 @@ public final class Functions {
 
         @Override
         public U apply(T t) throws Exception {
-            return clazz.cast(t);
+            //noinspection unchecked GWT do not support Class.cast
+            return (U) t;
         }
     }
 
@@ -349,6 +351,7 @@ public final class Functions {
         return new ActionConsumer<T>(action);
     }
 
+    @GwtIncompatible("Class.isInstance")
     static final class ClassFilter<T, U> implements Predicate<T> {
         final Class<U> clazz;
 
@@ -362,6 +365,7 @@ public final class Functions {
         }
     }
 
+    @GwtIncompatible("Class.isInstance")
     public static <T, U> Predicate<T> isInstanceOf(Class<U> clazz) {
         return new ClassFilter<T, U>(clazz);
     }
