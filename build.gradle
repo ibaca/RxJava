@@ -435,11 +435,11 @@ task gwtCopy(type: Copy) {
     description = 'GWT Copy HEAD modified files to RxJava GWT'
     def out = new ByteArrayOutputStream()
     exec {
-        commandLine 'git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'v2.2.0', 'HEAD'
+        commandLine 'git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'v2.2.2', 'HEAD'
         standardOutput = out
     }
     def modified = out.toString().split('\n').toList()
-            .findAll({file -> file.startsWith('src/main/java')})
+            .findAll({file -> file.startsWith('src/main/java') && !file.contains('GwtIncompatible')})
             .collect({file -> file.replace('src/main/java/','')})
     from('src/main/java') {
         include modified
